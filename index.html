@@ -1,11 +1,134 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>LOLO BOUTIQUE</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LOLO BOUTIQUE | لولو بوتيك</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#fff8fb;color:#30212b}
+header{background:#fff;text-align:center;padding:25px 15px;box-shadow:0 2px 12px #0001}
+.logo{font-size:29px;font-weight:bold;color:#c34b83}
+header p{color:#876b79}
+nav{background:#f7dce8;text-align:center;padding:13px}
+nav a{color:#7e3158;text-decoration:none;margin:0 12px;font-weight:bold}
+.hero{text-align:center;padding:45px 18px;background:linear-gradient(135deg,#ffe1ed,#fff7fa)}
+.hero h1{font-size:29px}
+.hero p{line-height:1.8}
+.btn{background:#c34b83;color:white;border:0;border-radius:12px;padding:13px 20px;cursor:pointer;font-size:15px}
+section{padding:25px 16px;max-width:1000px;margin:auto}
+h2{text-align:center;color:#a5366a}
+.products{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.product{background:white;border-radius:17px;padding:14px;text-align:center;box-shadow:0 3px 14px #0001}
+.photo{background:#fff0f5;border-radius:12px;font-size:65px;padding:22px 0}
+.product h3{font-size:16px}
+.price{color:#b52f6c;font-weight:bold}
+.product button{width:100%}
+.cart{background:white;border-radius:18px;padding:20px;box-shadow:0 3px 14px #0001}
+.cart-item{padding:12px 0;border-bottom:1px solid #eee}
+input,select,textarea{display:block;width:100%;padding:13px;margin:10px 0;border:1px solid #e4cad5;border-radius:10px;font:inherit}
+footer{text-align:center;padding:25px;background:#4b263b;color:white;margin-top:30px}
+@media(min-width:700px){.products{grid-template-columns:repeat(4,1fr)}}
+</style>
 </head>
 <body>
-  <h1>أهلاً بكم في لولو بوتيك 💄</h1>
+<header>
+<div class="logo">💄 LOLO BOUTIQUE</div>
+<p>لولو بوتيك | عالم المكياج والجمال</p>
+</header>
+<nav>
+<a href="#products">المنتجات</a>
+<a href="#cart">السلة</a>
+<a href="#checkout">الطلب</a>
+</nav>
+<div class="hero">
+<h1>أهلاً بيكم في لولو بوتيك 💗</h1>
+<p>منتجات جمال ومكياج مختارة إلكم بكل حب</p>
+<a href="#products"><button class="btn">تسوق الآن</button></a>
+</div>
+<section id="products">
+<h2>منتجاتنا ✨</h2>
+<div class="products" id="productList"></div>
+</section>
+<section id="cart">
+<h2>سلة المشتريات 🛍️</h2>
+<div class="cart">
+<div id="cartItems">السلة فارغة حالياً</div>
+<h3 id="total">المجموع: 0 د.ع</h3>
+</div>
+</section>
+<section id="checkout">
+<h2>إكمال الطلب 💌</h2>
+<div class="cart">
+<form id="orderForm">
+<input id="name" placeholder="الاسم الكامل" required maxlength="100">
+<input id="phone" type="tel" placeholder="رقم الهاتف" required maxlength="20">
+<select id="gov" required>
+<option value="">اختار المحافظة</option>
+<option>بغداد</option><option>البصرة</option>
+<option>نينوى</option><option>أربيل</option>
+<option>النجف</option><option>كربلاء</option>
+<option>بابل</option><option>ديالى</option>
+<option>الأنبار</option><option>واسط</option>
+<option>ذي قار</option><option>ميسان</option>
+<option>المثنى</option><option>القادسية</option>
+<option>صلاح الدين</option><option>كركوك</option>
+<option>دهوك</option><option>السليمانية</option>
+</select>
+<textarea id="address" placeholder="العنوان بالتفصيل" required maxlength="500"></textarea>
+<button class="btn" type="submit">تجهيز تفاصيل الطلب</button>
+</form>
+<p id="notice"></p>
+</div>
+</section>
+<footer>LOLO BOUTIQUE © 2026 💕</footer>
+<script>
+const products=[
+{name:"روج وردي",price:12000,emoji:"💄"},
+{name:"ماسكارا",price:15000,emoji:"👁️"},
+{name:"بلاشر",price:18000,emoji:"🌸"},
+{name:"مجموعة مكياج",price:35000,emoji:"🎀"}
+];
+const cart=[];
+const money=n=>n.toLocaleString("en-US")+" د.ع";
+function renderProducts(){
+document.getElementById("productList").innerHTML=products.map((p,i)=>`
+<div class="product">
+<div class="photo">${p.emoji}</div>
+<h3>${p.name}</h3>
+<p class="price">${money(p.price)}</p>
+<button class="btn" onclick="addItem(${i})">أضف للسلة +</button>
+</div>`).join("");
+}
+function addItem(i){
+const item=cart.find(x=>x.id===i);
+if(item)item.qty++;
+else cart.push({id:i,qty:1});
+renderCart();
+}
+function removeItem(i){
+const index=cart.findIndex(x=>x.id===i);
+if(index>=0){cart.splice(index,1);renderCart();}
+}
+function renderCart(){
+const box=document.getElementById("cartItems");
+box.innerHTML=cart.length?cart.map(x=>`
+<div class="cart-item">
+${products[x.id].name} × ${x.qty}
+— ${money(products[x.id].price*x.qty)}
+<button onclick="removeItem(${x.id})">حذف</button>
+</div>`).join(""):"السلة فارغة حالياً";
+const total=cart.reduce((s,x)=>s+products[x.id].price*x.qty,0);
+document.getElementById("total").textContent="المجموع: "+money(total);
+}
+document.getElementById("orderForm").addEventListener("submit",e=>{
+e.preventDefault();
+if(!cart.length){alert("ضيف منتج للسلة أولاً");return;}
+document.getElementById("notice").textContent=
+"تم تجهيز تفاصيل الطلب. إرسال الطلبات للمتجر راح نفعّله بالخطوة الجاية.";
+});
+renderProducts();
+</script>
 </body>
 </html>
