@@ -143,7 +143,7 @@ document.getElementById("orderForm").addEventListener("submit", async (e) => {
     customer_phone: document.getElementById("phone").value.trim(),
     governorate: document.getElementById("gov").value,
     address: document.getElementById("address").value.trim(),
-    items
+    quantity: cart.reduce((sum, x) => sum + x.qty, 0)
   };
 
   try {
