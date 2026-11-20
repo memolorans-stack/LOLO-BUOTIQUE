@@ -122,12 +122,56 @@ ${products[x.id].name} × ${x.qty}
 const total=cart.reduce((s,x)=>s+products[x.id].price*x.qty,0);
 document.getElementById("total").textContent="المجموع: "+money(total);
 }
-document.getElementById("orderForm").addEventListener("submit",e=>{
-e.preventDefault();
-if(!cart.length){alert("ضيف منتج للسلة أولاً");return;}
-document.getElementById("notice").textContent=
-"تم تجهيز تفاصيل الطلب. إرسال الطلبات للمتجر راح نفعّله بالخطوة الجاية.";
+
+document.getElementById("orderForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  if (!cart.length) {
+    alert("ضيف منتج للسلة أولاً");
+    return;
+  }
+
+  const notice = document.getElementById("notice");
+  notice.textContent = "جاري إرسال الطلب...";
+
+  const items = cart.flatMap(x =>
+    Array(x.qty).fill(products[x.id].name)
+  );
+
+  const body = {
+    customer_name: document.getElementById("name").value.trim(),
+    customer_phone: document.getElementById("phone").value.trim(),
+    governorate: document.getElementById("gov").value,
+    address: document.getElementById("address").value.trim(),
+    items
+  };
+
+  try {
+    const response = await fetch(
+      "https://yeihtioiuwxfhxbrfgbl.supabase.co/functions/v1/create-order",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok || !result.ok) {
+      throw new Error(result.error || "تعذر إرسال الطلب");
+    }
+
+    notice.textContent = "تم استلام طلبك بنجاح ❤️";
+    cart = [];
+    renderCart();
+    e.target.reset();
+  } catch (error) {
+    notice.textContent = "ما تم إرسال الطلب، حاول مرة ثانية.";
+    console.error(error);
+  }
 });
+
 renderProducts();
 </script>
 </body>
