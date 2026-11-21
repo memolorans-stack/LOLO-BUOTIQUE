@@ -151,6 +151,89 @@ if (data.user.id !== "16579f8a-aea5-408a-8571-1a7bbc55916f") {
   }
 });
 
+document.getElementById("addProductBtn").addEventListener("click", async () => {
+  const message = document.getElementById("productMessage");
+  const button = document.getElementById("addProductBtn");
+  const name = document.getElementById("productName").value.trim();
+  const price = Number(document.getElementById("productPrice").value);
+  const stockText = document.getElementById("productStock").value;
+  const description = document.getElementById("productDescription").value.trim();
+  const file = document.getElementById("productImage").files[0];
+
+  if (!name || !Number.isInteger(price) || price <= 0) {
+    message.textContent = "أدخل اسم المنتج وسعر صحيح";
+    return;
+  }
+
+  const stock = stockText === "" ? null : Number(stockText);
+  if (stock !== null && (!Number.isInteger(stock) || stock < 0)) {
+    message.textContent = "أدخل كمية صحيحة";
+    return;
+  }
+
+  button.disabled = true;
+  message.textContent = "جاري حفظ المنتج...";
+
+  try {
+    const { data: { user }, error: authError } =
+      await supabaseClient.auth.getUser();
+
+    if (authError || !user ||
+        user.id !== "16579f8a-aea5-408a-8571-1a7bbc55916f") {
+      throw new Error("سجّل دخول المدير أولاً");
+    }
+
+    let imageUrl = null;
+
+    if (file) {
+      if (!file.type.startsWith("image/") || file.size > 5 * 1024 * 1024) {
+        throw new Error("اختار صورة أقل من 5 ميغابايت");
+      }
+
+      const extension = file.name.split(".").pop().toLowerCase();
+      const path = `${user.id}/${crypto.randomUUID()}.${extension}`;
+
+      const { error: uploadError } = await supabaseClient.storage
+        .from("product-images")
+        .upload(path, file, { contentType: file.type });
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabaseClient.storage
+        .from("product-images")
+        .getPublicUrl(path);
+
+      imageUrl = data.publicUrl;
+    }
+
+    const { error } = await supabaseClient
+      .from("Products")
+      .insert({
+        
+Neme: name,
+Price: price,
+Stock: stock,
+Image_url: imageUrl,
+Is_active: true
+
+      });
+
+    if (error) throw error;
+
+    message.textContent = "تمت إضافة المنتج بنجاح ✅";
+    document.getElementById("productName").value = "";
+    document.getElementById("productPrice").value = "";
+    document.getElementById("productStock").value = "";
+    document.getElementById("productDescription").value = "";
+    document.getElementById("productImage").value = "";
+
+  } catch (error) {
+    message.textContent = "تعذر الحفظ: " + error.message;
+  } finally {
+    button.disabled = false;
+  }
+});
+
 </script>
 
 </body>
