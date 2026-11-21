@@ -590,7 +590,7 @@ function renderOrders(){
     addText(card,"━━━━━━━━━━━━");
     addText(card,"الإجمالي المسجل: "+money(o.total_price));
     addText(card,"أجور التوصيل: "+money(o.delivery_fee));
-
+addText(card,"المبلغ النهائي شامل التوصيل: "+money(Number(o.total_price)+Number(o.delivery_fee)));
     addText(card,"الحالة: "+orderStatus(o.status));
 
     const select=document.createElement("select");
