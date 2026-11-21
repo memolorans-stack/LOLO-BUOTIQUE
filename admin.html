@@ -86,6 +86,22 @@ h2{color:#a76e79}
 <div id="ordersPanel" hidden>
 <div class="card">
 <h2>طلبات الزبائن</h2>
+
+<input id="orderSearch"
+placeholder="ابحث برقم الطلب أو الهاتف أو اسم الزبون"
+oninput="renderOrders()">
+
+<select id="orderFilter" onchange="renderOrders()">
+<option value="all">جميع الطلبات</option>
+<option value="جديد">الطلبات الجديدة</option>
+<option value="قيد التجهيز">قيد التجهيز</option>
+<option value="تم التجهيز">تم التجهيز</option>
+<option value="خرج للتوصيل">خرج للتوصيل</option>
+<option value="تم التسليم">تم التسليم</option>
+<option value="ملغي">الطلبات الملغاة</option>
+</select>
+
+<p id="orderCount"></p>
 <button onclick="loadOrders()">تحديث الطلبات</button>
 <div id="orderList"></div>
 </div>
@@ -462,88 +478,168 @@ await loadProducts();
 
 }
 
+let orderCache = [];
+
+function orderStatus(status){
+  return !status || status==="pending"
+    ? "جديد" : status;
+}
+
+function money(value){
+  return Number(value||0).toLocaleString("en-US")+" د.ع";
+}
+
 async function loadOrders(){
 
-$("orderList").textContent="جاري تحميل الطلبات...";
+  orderCache=[];
+  $("orderCount").textContent="";
+  $("orderList").textContent="جاري تحميل الطلبات...";
 
-if(!await checkAdmin()){
-$("orderList").textContent="غير مصرح";
-return;
+  if(!await checkAdmin()){
+    $("orderList").textContent="غير مصرح";
+    return;
+  }
+
+  const {data,error}=await db.from("orders")
+    .select("*")
+    .order("id",{ascending:false});
+
+  if(error){
+    $("orderList").textContent=error.message;
+    return;
+  }
+
+  orderCache=data||[];
+  renderOrders();
 }
 
-const {data,error}=await db.from("orders")
-.select("*")
-.order("id",{ascending:false});
+function renderOrders(){
 
-if(error){
-$("orderList").textContent=error.message;
-return;
-}
+  if($("dashboard").hidden) return;
 
-$("orderList").replaceChildren();
+  const search=$("orderSearch").value.trim().toLowerCase();
+  const filter=$("orderFilter").value;
 
-if(!data.length){
-$("orderList").textContent="لا توجد طلبات حالياً";
-return;
-}
+  const rows=orderCache.filter(o=>{
 
-for(const o of data){
+    const matches=[
+      o.id,
+      o.customer_name,
+      o.customer_phone,
+      o.governorate
+    ].some(v=>String(v||"").toLowerCase().includes(search));
 
-const card=document.createElement("div");
-card.className="card";
+    return matches &&
+      (filter==="all" || orderStatus(o.status)===filter);
+  });
 
-addText(card,"رقم الطلب: "+o.id);
-addText(card,"التاريخ: "+new Date(o.created_at).toLocaleString("ar-IQ"));
-addText(card,"الزبون: "+o.customer_name);
-addText(card,"الهاتف: "+o.customer_phone);
-addText(card,"المحافظة: "+o.governorate);
-addText(card,"العنوان: "+o.address);
-addText(card,"المنتجات: "+o.items);
-addText(card,"الإجمالي المسجل: "+o.total_price+" د.ع");
-addText(card,"التوصيل: "+o.delivery_fee+" د.ع");
-addText(card,"الحالة: "+(o.status||"جديد"));
+  $("orderList").replaceChildren();
+  $("orderCount").textContent="عدد الطلبات: "+rows.length;
 
-const select=document.createElement("select");
+  if(!rows.length){
+    $("orderList").textContent="لا توجد طلبات مطابقة";
+    return;
+  }
 
-const statuses=[...new Set([o.status||"جديد","جديد","قيد التجهيز","تم التجهيز","خرج للتوصيل","تم التسليم","ملغي"])];
+  for(const o of rows){
 
-for(const status of statuses){
+    const card=document.createElement("div");
+    card.className="card";
 
-const option=document.createElement("option");
-option.value=status;
-option.textContent=status;
-select.appendChild(option);
+    const heading=document.createElement("h2");
+    heading.textContent="طلب رقم #"+o.id;
+    card.appendChild(heading);
 
-}
+    addText(card,"التاريخ: "+new Date(o.created_at).toLocaleString("ar-IQ"));
+    addText(card,"الزبون: "+o.customer_name);
+    addText(card,"الهاتف: "+o.customer_phone);
+    addText(card,"المحافظة: "+(o.governorate==="Baghdad"?"بغداد":o.governorate));
+    addText(card,"العنوان: "+o.address);
 
-select.value=o.status||"جديد";
+    addText(card,"━━━━━━━━━━━━");
+    addText(card,"المنتجات المطلوبة:");
 
-card.appendChild(select);
+    try{
 
-addButton(card,"حفظ حالة الطلب",async()=>{
+      const items=typeof o.items==="string"
+        ? JSON.parse(o.items) : o.items;
 
-if(!await checkAdmin()) return;
+      if(!Array.isArray(items)) throw new Error();
 
-const {error}=await db.from("orders")
-.update({status:select.value})
-.eq("id",o.id)
-.select("id")
-.single();
+      for(const item of items){
 
-if(error){
-alert(error.message);
-return;
-}
+        const name=item.product||item.name||item.Neme||"منتج";
+        const qty=item.quantity??item.qty??1;
+        const price=item.unit_price_iqd??item.price??item.Price;
 
-alert("تم تحديث الطلب");
-await loadOrders();
+        addText(card,"المنتج: "+name);
+        addText(card,"الكمية: "+qty);
 
-},"green");
+        if(price!=null){
+          addText(card,"سعر القطعة: "+money(price));
+          addText(card,"المجموع: "+money(Number(price)*Number(qty)));
+        }
+      }
 
-$("orderList").appendChild(card);
+    }catch{
 
-}
+      addText(card,String(o.items||""));
 
+    }
+
+    addText(card,"━━━━━━━━━━━━");
+    addText(card,"الإجمالي المسجل: "+money(o.total_price));
+    addText(card,"أجور التوصيل: "+money(o.delivery_fee));
+
+    addText(card,"الحالة: "+orderStatus(o.status));
+
+    const select=document.createElement("select");
+
+    const statuses=[...new Set([
+      "جديد",
+      "قيد التجهيز",
+      "تم التجهيز",
+      "خرج للتوصيل",
+      "تم التسليم",
+      "ملغي",
+      orderStatus(o.status)
+    ])];
+
+    for(const status of statuses){
+
+      const option=document.createElement("option");
+      option.value=status;
+      option.textContent=status;
+      select.appendChild(option);
+
+    }
+
+    select.value=orderStatus(o.status);
+    card.appendChild(select);
+
+    addButton(card,"حفظ حالة الطلب",async()=>{
+
+      if(!await checkAdmin()) return;
+
+      const {error}=await db.from("orders")
+        .update({status:select.value})
+        .eq("id",o.id)
+        .select("id")
+        .single();
+
+      if(error){
+        alert(error.message);
+        return;
+      }
+
+      alert("تم تحديث حالة الطلب بنجاح");
+      await loadOrders();
+
+    },"green");
+
+    $("orderList").appendChild(card);
+
+  }
 }
 
 openDashboard();
