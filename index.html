@@ -90,7 +90,7 @@ const products=[
 {name:"بلاشر",price:18000,emoji:"🌸"},
 {name:"مجموعة مكياج",price:35000,emoji:"🎀"}
 ];
-const cart=[];
+let cart=[];
 const money=n=>n.toLocaleString("en-US")+" د.ع";
 function renderProducts(){
 document.getElementById("productList").innerHTML=products.map((p,i)=>`
