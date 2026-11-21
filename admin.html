@@ -95,6 +95,37 @@
     SUPABASE_URL,
     SUPABASE_KEY
   );
+  
+document.getElementById("loginBtn").addEventListener("click", async () => {
+  const email = document.getElementById("adminEmail").value.trim();
+  const password = document.getElementById("adminPassword").value;
+  const message = document.getElementById("loginMessage");
+  const button = document.getElementById("loginBtn");
+
+  if (!email || !password) {
+    message.textContent = "أدخل البريد الإلكتروني وكلمة المرور";
+    return;
+  }
+
+  button.disabled = true;
+  message.textContent = "جاري تسجيل الدخول...";
+
+  try {
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) throw error;
+
+    message.textContent = "تم تسجيل الدخول بنجاح";
+  } catch (error) {
+    message.textContent = "تعذر تسجيل الدخول. تأكد من بيانات الحساب.";
+  } finally {
+    button.disabled = false;
+  }
+});
+
 </script>
 
 </body>
