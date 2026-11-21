@@ -49,11 +49,33 @@
   </header>
 
   <main>
-    <div class="card">
-      <h2>المنتجات</h2>
-      <p>إضافة المنتجات والصور والأسعار</p>
-      <button disabled>قريباً</button>
-    </div>
+  
+<div class="card" id="productsPanel" style="display:none">
+  <h2>إضافة منتج جديد</h2>
+
+  <input id="productName" type="text"
+    placeholder="اسم المنتج">
+
+  <input id="productPrice" type="number"
+    placeholder="السعر بالدينار العراقي">
+
+  <input id="productStock" type="number"
+    placeholder="الكمية بالمخزن">
+
+  <textarea id="productDescription"
+    placeholder="وصف المنتج"></textarea>
+
+  <p>صورة المنتج:</p>
+  <input id="productImage" type="file"
+    accept="image/*">
+
+  <button type="button" id="addProductBtn">
+    إضافة المنتج
+  </button>
+
+  <p id="productMessage"></p>
+</div>
+
 
     <div class="card">
       <h2>الطلبات</h2>
@@ -117,8 +139,11 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
     });
 
     if (error) throw error;
-
+if (data.user.id !== "16579f8a-aea5-408a-8571-1a7bbc55916f") {
+  throw new Error("غير مصرح لهذا الحساب");
+}
     message.textContent = "تم تسجيل الدخول بنجاح";
+    document.getElementById("productsPanel").style.display = "block";
   } catch (error) {
     message.textContent = "تعذر تسجيل الدخول. تأكد من بيانات الحساب.";
   } finally {
