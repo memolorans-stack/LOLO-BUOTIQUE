@@ -681,6 +681,47 @@ if(s.background_mode === "full" && s.banner_url && /^https:\/\//i.test(s.banner_
 }else{
   document.body.style.backgroundImage = "none";
 }
+const themeStyle = document.createElement("style");
+
+const cardOpacity = Math.max(0, Math.min(100,
+  Number(s.product_card_opacity ?? 100))) / 100;
+
+const sectionOpacity = Math.max(0, Math.min(100,
+  Number(s.section_opacity ?? 100))) / 100;
+
+const themes = {
+  classic: "border-radius:12px;",
+  modern: "border-radius:24px;box-shadow:0 8px 24px #0002;",
+  glass: "border-radius:20px;backdrop-filter:blur(12px);border:1px solid #ffffff88;",
+  luxury: "border-radius:16px;border:2px solid #c9a45c;box-shadow:0 6px 20px #0003;"
+};
+
+themeStyle.textContent = `
+#productList > * {
+  background:rgba(255,255,255,${cardOpacity}) !important;
+  ${themes[s.product_theme] || themes.classic}
+}
+
+#cart {
+  background:rgba(255,255,255,${sectionOpacity}) !important;
+  ${themes[s.cart_theme] || themes.classic}
+}
+
+#checkout {
+  background:rgba(255,255,255,${sectionOpacity}) !important;
+  ${themes[s.checkout_theme] || themes.classic}
+}
+
+.price {
+  color:${validColor(s.price_color) ? s.price_color : "#CC4488"} !important;
+}
+
+.btn, #productList button, #checkout button, #cart button {
+  background:${validColor(s.button_color) ? s.button_color : "#CC4488"} !important;
+}
+`;
+
+document.head.appendChild(themeStyle);
   }catch(error){
     console.error(error);
   }
