@@ -58,8 +58,14 @@ h2{color:#a76e79}
 <label>رابط الشعار</label>
 <input id="storeLogo">
 
+<label>رفع الشعار من الهاتف</label>
+<input id="logoFile" type="file" accept="image/*">
+
 <label>رابط صورة الواجهة</label>
 <input id="storeBanner">
+
+<label>رفع صورة الواجهة من الهاتف</label>
+<input id="bannerFile" type="file" accept="image/*">
 
 <label>عنوان الترحيب</label>
 <input id="welcomeTitle">
@@ -764,7 +770,40 @@ $("saveAppearance").onclick=async()=>{
 
     if(!settings.store_name)
       throw new Error("أدخل اسم المتجر");
+const {data:{user}} = await db.auth.getUser();
 
+if(!user) throw new Error("سجل الدخول أولاً");
+
+for(const [field,column] of [
+  ["logoFile","logo_url"],
+  ["bannerFile","banner_url"]
+]){
+
+  const file=$(field).files[0];
+
+  if(!file) continue;
+
+  const types={
+    "image/jpeg":"jpg",
+    "image/png":"png",
+    "image/webp":"webp"
+  };
+
+  if(!types[file.type] || file.size>5*1024*1024)
+    throw new Error("اختر صورة JPG أو PNG أو WEBP أقل من 5 ميغابايت");
+
+  const path=user.id+"/"+crypto.randomUUID()+"."+types[file.type];
+
+  const {error}=await db.storage
+    .from("product-images")
+    .upload(path,file,{contentType:file.type});
+
+  if(error) throw error;
+
+  settings[column]=db.storage
+    .from("product-images")
+    .getPublicUrl(path).data.publicUrl;
+}
     for(const key of ["logo_url","banner_url"]){
       if(settings[key] && !/^https:\/\//i.test(settings[key]))
         throw new Error("رابط الصورة يجب أن يبدأ بـ HTTPS");
@@ -782,7 +821,10 @@ $("saveAppearance").onclick=async()=>{
     if(error) throw error;
 
     $("appearanceMessage").textContent="تم حفظ مظهر المتجر بنجاح ✅";
-
+$("storeLogo").value = settings.logo_url || "";
+$("storeBanner").value = settings.banner_url || "";
+$("logoFile").value = "";
+$("bannerFile").value = "";
   }catch(error){
 
     $("appearanceMessage").textContent="تعذر الحفظ: "+error.message;
