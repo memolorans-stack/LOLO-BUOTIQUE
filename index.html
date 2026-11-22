@@ -42,8 +42,10 @@ footer{text-align:center;padding:25px;background:#4b263b;color:white;margin-top:
 </head>
 <body>
 
-<header>
-<div class="logo">💄 LOLO BOUTIQUE</div>
+<header id="storeHeader">
+<img id="storeLogo" hidden
+style="max-width:180px;max-height:120px;object-fit:contain;margin:0 auto 12px">
+<div class="logo" id="storeName">💄 LOLO BOUTIQUE</div>
 <p>لولو بوتيك | عالم المكياج والجمال</p>
 </header>
 
@@ -53,9 +55,11 @@ footer{text-align:center;padding:25px;background:#4b263b;color:white;margin-top:
 <a href="#checkout">الطلب</a>
 </nav>
 
-<div class="hero">
-<h1>أهلاً بيكم في لولو بوتيك 💗</h1>
-<p>منتجات جمال ومكياج مختارة إلكم بكل حب</p>
+<div class="hero" id="storeHero">
+<img id="storeBanner" hidden
+style="width:100%;max-height:350px;object-fit:cover;border-radius:15px">
+<h1 id="welcomeTitle">أهلاً بيكم في لولو بوتيك 💗</h1>
+<p id="welcomeText">منتجات جمال ومكياج مختارة إلكم بكل حب</p>
 <a href="#products" class="btn">تسوق الآن</a>
 </div>
 
@@ -583,6 +587,80 @@ document.getElementById("orderForm")
   }
 });
 
+async function loadStoreSettings(){
+
+  try{
+
+    const response = await fetch(
+      SUPABASE_URL +
+      "/rest/v1/store_settings?select=*&id=eq.1",
+      {
+        cache:"no-store",
+        headers:{apikey:PUBLIC_KEY}
+      }
+    );
+
+    if(!response.ok) return;
+
+    const rows = await response.json();
+    const s = rows[0];
+
+    if(!s) return;
+
+    const $ = id => document.getElementById(id);
+
+    if(s.store_name){
+      $("storeName").textContent=s.store_name;
+      document.title=s.store_name;
+    }
+
+    if(s.welcome_title)
+      $("welcomeTitle").textContent=s.welcome_title;
+
+    if(s.welcome_text)
+      $("welcomeText").textContent=s.welcome_text;
+
+    function setImage(id,value){
+      if(value && /^https:\/\//i.test(value)){
+        $(id).src=value;
+        $(id).hidden=false;
+      }
+    }
+
+    setImage("storeLogo",s.logo_url);
+    setImage("storeBanner",s.banner_url);
+
+    function validColor(value){
+      return /^#[0-9a-f]{6}$/i.test(value||"");
+    }
+
+    if(validColor(s.background_color))
+      document.body.style.background=s.background_color;
+
+    if(validColor(s.text_color))
+      document.body.style.color=s.text_color;
+
+    if(validColor(s.header_color))
+      $("storeHeader").style.background=s.header_color;
+
+    if(validColor(s.primary_color)){
+      const style=document.createElement("style");
+
+      style.textContent=`
+        .btn{background:${s.primary_color}}
+        .logo,h2,.price{color:${s.primary_color}}
+      `;
+
+      document.head.appendChild(style);
+    }
+
+  }catch(error){
+    console.error(error);
+  }
+
+}
+
+loadStoreSettings();
 loadProducts();
 
 </script>
