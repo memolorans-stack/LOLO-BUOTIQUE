@@ -44,11 +44,45 @@ h2{color:#a76e79}
 <h2>مرحباً بك في لوحة الإدارة</h2>
 <button onclick="showPanel('products')">إدارة المنتجات</button>
 <button onclick="showPanel('orders')">إدارة الطلبات</button>
-<button disabled>مظهر المتجر - قريباً</button>
+<button onclick="showPanel('appearance')">مظهر المتجر</button>
 <button disabled>إدارة الموظفين - قريباً</button>
 <button class="danger" id="logoutBtn">تسجيل الخروج</button>
 </div>
+<div id="appearancePanel" hidden>
+<div class="card">
+<h2>التحكم بمظهر المتجر</h2>
 
+<label>اسم المتجر</label>
+<input id="storeName">
+
+<label>رابط الشعار</label>
+<input id="storeLogo">
+
+<label>رابط صورة الواجهة</label>
+<input id="storeBanner">
+
+<label>عنوان الترحيب</label>
+<input id="welcomeTitle">
+
+<label>عبارة الترحيب</label>
+<textarea id="welcomeText"></textarea>
+
+<label>اللون الرئيسي</label>
+<input id="primaryColor" type="color">
+
+<label>لون الخلفية</label>
+<input id="backgroundColor" type="color">
+
+<label>لون النصوص</label>
+<input id="textColor" type="color">
+
+<label>لون الهيدر</label>
+<input id="headerColor" type="color">
+
+<button id="saveAppearance" class="green">حفظ المظهر</button>
+<p id="appearanceMessage"></p>
+</div>
+</div>
 <div id="productsPanel">
 
 <div class="card">
@@ -224,7 +258,9 @@ $("productsPanel").hidden=panel!=="products";
 $("ordersPanel").hidden=panel!=="orders";
 
 if(panel==="orders") loadOrders();
+$("appearancePanel").hidden=panel!=="appearance";
 
+if(panel==="appearance") loadAppearance();
 }
 
 function resetForm(){
@@ -664,7 +700,188 @@ addText(card,"المبلغ النهائي شامل التوصيل: "+money(Numbe
 
   }
 }
+let appearanceFields = {
+  storeName:"store_name",
+  storeLogo:"logo_url",
+  storeBanner:"banner_url",
+  welcomeTitle:"welcome_title",
+  welcomeText:"welcome_text",
+  primaryColor:"primary_color",
+  backgroundColor:"background_color",
+  textColor:"text_color",
+  headerColor:"header_color"
+};
 
+async function loadAppearance(){
+
+  $("saveAppearance").disabled=true;
+  $("appearanceMessage").textContent="جاري تحميل الإعدادات...";
+
+  try{
+
+    if(!await checkAdmin())
+      throw new Error("غير مصرح");
+
+    const {data,error}=await db
+      .from("store_settings")
+      .select("*")
+      .eq("id",1)
+      .single();
+
+    if(error) throw error;
+
+    for(const [field,column] of Object.entries(appearanceFields)){
+      $(field).value=data[column]??"";
+    }
+
+    $("appearanceMessage").textContent="";
+    $("saveAppearance").disabled=false;
+
+  }catch(error){
+
+    $("appearanceMessage").textContent=error.message;
+
+  }
+
+}
+
+$("saveAppearance").onclick=async()=>{
+
+  $("saveAppearance").disabled=true;
+
+  try{
+
+    if(!await checkAdmin())
+      throw new Error("غير مصرح");
+
+    const settings={};
+
+    for(const [field,column] of Object.entries(appearanceFields)){
+      settings[column]=$(field).value.trim();
+    }
+
+    if(!settings.store_name)
+      throw new Error("أدخل اسم المتجر");
+
+    for(const key of ["logo_url","banner_url"]){
+      if(settings[key] && !/^https:\/\//i.test(settings[key]))
+        throw new Error("رابط الصورة يجب أن يبدأ بـ HTTPS");
+
+      if(!settings[key]) settings[key]=null;
+    }
+
+    const {error}=await db
+      .from("store_settings")
+      .update(settings)
+      .eq("id",1)
+      .select("id")
+      .single();
+
+    if(error) throw error;
+
+    $("appearanceMessage").textContent="تم حفظ مظهر المتجر بنجاح ✅";
+
+  }catch(error){
+
+    $("appearanceMessage").textContent="تعذر الحفظ: "+error.message;
+
+  }finally{
+
+    $("saveAppearance").disabled=false;
+
+  }
+let appearanceFields = {
+  storeName:"store_name",
+  storeLogo:"logo_url",
+  storeBanner:"banner_url",
+  welcomeTitle:"welcome_title",
+  welcomeText:"welcome_text",
+  primaryColor:"primary_color",
+  backgroundColor:"background_color",
+  textColor:"text_color",
+  headerColor:"header_color"
+};
+
+async function loadAppearance(){
+
+  $("saveAppearance").disabled=true;
+  $("appearanceMessage").textContent="جاري تحميل الإعدادات...";
+
+  try{
+
+    if(!await checkAdmin())
+      throw new Error("غير مصرح");
+
+    const {data,error}=await db
+      .from("store_settings")
+      .select("*")
+      .eq("id",1)
+      .single();
+
+    if(error) throw error;
+
+    for(const [field,column] of Object.entries(appearanceFields)){
+      $(field).value=data[column]??"";
+    }
+
+    $("appearanceMessage").textContent="";
+    $("saveAppearance").disabled=false;
+
+  }catch(error){
+
+    $("appearanceMessage").textContent=error.message;
+
+  }
+
+}
+
+$("saveAppearance").onclick=async()=>{
+
+  $("saveAppearance").disabled=true;
+
+  try{
+
+    if(!await checkAdmin())
+      throw new Error("غير مصرح");
+
+    const settings={};
+
+    for(const [field,column] of Object.entries(appearanceFields)){
+      settings[column]=$(field).value.trim();
+    }
+
+    if(!settings.store_name)
+      throw new Error("أدخل اسم المتجر");
+
+    for(const key of ["logo_url","banner_url"]){
+      if(settings[key] && !/^https:\/\//i.test(settings[key]))
+        throw new Error("رابط الصورة يجب أن يبدأ بـ HTTPS");
+
+      if(!settings[key]) settings[key]=null;
+    }
+
+    const {error}=await db
+      .from("store_settings")
+      .update(settings)
+      .eq("id",1)
+      .select("id")
+      .single();
+
+    if(error) throw error;
+
+    $("appearanceMessage").textContent="تم حفظ مظهر المتجر بنجاح ✅";
+
+  }catch(error){
+
+    $("appearanceMessage").textContent="تعذر الحفظ: "+error.message;
+
+  }finally{
+
+    $("saveAppearance").disabled=false;
+
+  }
+
+};
 openDashboard();
 
 </script>
