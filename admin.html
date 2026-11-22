@@ -161,7 +161,9 @@ const db = window.supabase.createClient(
 "https://yeihtioiuwxfhxbrfgbl.supabase.co",
 "sb_publishable_hDsENPJ7yzc9vzPRPizGnA_FyGjjG1c"
 );
-
+if (!window.supabase) {
+  alert("تعذر تحميل مكتبة Supabase");
+}
 const $ = id => document.getElementById(id);
 
 let editingId = null;
