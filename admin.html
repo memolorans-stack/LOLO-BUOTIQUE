@@ -84,7 +84,47 @@ h2{color:#a76e79}
 
 <label>لون الهيدر</label>
 <input id="headerColor" type="color">
+<h3>التحكم بثيمات المتجر</h3>
 
+<label>طريقة عرض الخلفية</label>
+<select id="backgroundMode">
+<option value="normal">خلفية عادية</option>
+<option value="full">صورة بكامل الموقع</option>
+</select>
+
+<label>ثيم المنتجات</label>
+<select id="productTheme">
+<option value="classic">كلاسيكي</option>
+<option value="modern">عصري</option>
+<option value="glass">زجاجي شفاف</option>
+<option value="luxury">فخم</option>
+</select>
+
+<label>شفافية بطاقات المنتجات</label>
+<input id="productCardOpacity" type="number" min="0" max="100">
+
+<label>لون الأسعار</label>
+<input id="priceColor" type="color">
+
+<label>لون الأزرار</label>
+<input id="buttonColor" type="color">
+
+<label>ثيم السلة</label>
+<select id="cartTheme">
+<option value="classic">كلاسيكي</option>
+<option value="modern">عصري</option>
+<option value="glass">زجاجي شفاف</option>
+</select>
+
+<label>ثيم الطلبات</label>
+<select id="checkoutTheme">
+<option value="classic">كلاسيكي</option>
+<option value="modern">عصري</option>
+<option value="glass">زجاجي شفاف</option>
+</select>
+
+<label>شفافية الأقسام</label>
+<input id="sectionOpacity" type="number" min="0" max="100">
 <button id="saveAppearance" class="green">حفظ المظهر</button>
 <p id="appearanceMessage"></p>
 </div>
@@ -717,7 +757,15 @@ let appearanceFields = {
   primaryColor:"primary_color",
   backgroundColor:"background_color",
   textColor:"text_color",
-  headerColor:"header_color"
+  headerColor:"header_color",
+backgroundMode:"background_mode",
+productTheme:"product_theme",
+productCardOpacity:"product_card_opacity",
+priceColor:"price_color",
+buttonColor:"button_color",
+cartTheme:"cart_theme",
+checkoutTheme:"checkout_theme",
+sectionOpacity:"section_opacity"
 };
 
 async function loadAppearance(){
