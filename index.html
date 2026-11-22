@@ -1,6 +1,21 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+  
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+     appId: "f74a90a2-5b5c-41f0-9645-751c56ff3fd0",
+      serviceWorkerPath: "OneSignalSDKWorker.js",
+      serviceWorkerParam: {
+        scope: "/LOLO-BUOTIQUE/"
+      }
+    });
+  });
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>LOLO BOUTIQUE | لولو بوتيك</title>
