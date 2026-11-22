@@ -76,6 +76,14 @@ h2{color:#a76e79}
 
 <div class="card">
 <h2>المنتجات الموجودة</h2>
+<div id="stockStats" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:15px 0"></div>
+
+<select id="stockFilter" onchange="renderProducts()">
+<option value="all">جميع المنتجات</option>
+<option value="good">مخزون جيد</option>
+<option value="low">مخزون منخفض (1-5)</option>
+<option value="out">نفد المخزون</option>
+</select>
 <input id="search" placeholder="ابحث عن منتج">
 <button onclick="loadProducts()">تحديث المنتجات</button>
 <div id="productList"></div>
@@ -376,13 +384,28 @@ parent.appendChild(b);
 }
 
 function renderProducts(){
+const filter = $("stockFilter").value;
 
+const good = products.filter(p => Number(p.Stock) > 5).length;
+const low = products.filter(p => Number(p.Stock) > 0 && Number(p.Stock) <= 5).length;
+const out = products.filter(p => Number(p.Stock) <= 0).length;
+
+$("stockStats").innerHTML = `
+<div style="background:#f3e6eb;padding:15px;border-radius:10px">جميع المنتجات: ${products.length}</div>
+<div style="background:#e3f3e7;padding:15px;border-radius:10px">مخزون جيد: ${good}</div>
+<div style="background:#fff1ce;padding:15px;border-radius:10px">مخزون منخفض: ${low}</div>
+<div style="background:#ffe1e1;padding:15px;border-radius:10px">نفد المخزون: ${out}</div>
+`;
 const search=$("search").value.toLowerCase();
 
 $("productList").replaceChildren();
 
 for(const p of products){
+const stock = Number(p.Stock || 0);
 
+if(filter === "good" && stock <= 5) continue;
+if(filter === "low" && (stock <= 0 || stock > 5)) continue;
+if(filter === "out" && stock > 0) continue;
 if(!String(p.Neme||"").toLowerCase().includes(search)) continue;
 
 const card=document.createElement("div");
