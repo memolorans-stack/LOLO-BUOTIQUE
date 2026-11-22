@@ -662,9 +662,11 @@ async function loadStoreSettings(){
 
       document.head.appendChild(style);
     }
-if(s.banner_url && /^https:\/\//i.test(s.banner_url)){
+if(s.background_mode === "full" && s.banner_url && /^https:\/\//i.test(s.banner_url)){
+
   document.body.style.backgroundImage =
     `url("${s.banner_url}")`;
+
   document.body.style.backgroundSize = "cover";
   document.body.style.backgroundPosition = "center";
   document.body.style.backgroundAttachment = "fixed";
@@ -672,8 +674,12 @@ if(s.banner_url && /^https:\/\//i.test(s.banner_url)){
 
   $("storeHeader").style.background = "transparent";
   $("storeHero").style.background = "transparent";
+
   document.querySelector("nav").style.background =
     "rgba(255,255,255,0.25)";
+
+}else{
+  document.body.style.backgroundImage = "none";
 }
   }catch(error){
     console.error(error);
